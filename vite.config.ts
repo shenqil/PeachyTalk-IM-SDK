@@ -13,7 +13,7 @@ export default defineConfig(({ mode, command }) => {
     },
     server: {
       host: '0.0.0.0',
-      port: 8008, //设置服务启动端口号
+      port: 9999, //设置服务启动端口号
       open: true, //设置服务启动时是否自动打开浏览器
       proxy: {
         "/api": {
