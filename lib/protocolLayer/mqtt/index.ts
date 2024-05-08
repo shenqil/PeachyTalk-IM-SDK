@@ -2,13 +2,14 @@
  * @Author: shenqi.lv 248120694@qq.com
  * @Date: 2024-04-28 18:42:23
  * @LastEditors: shenqi.lv 248120694@qq.com
- * @LastEditTime: 2024-04-30 21:13:36
+ * @LastEditTime: 2024-05-08 21:13:21
  * @FilePath: \PeachyTalk-IM-SDK\lib\protocolLayer\mqtt\mqtt.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ * @Description: 对MQTT进行封装
  */
 import mqtt, { MqttClient } from "mqtt"
 
 const msgTopicPrefix = 'MSG'
+const clientId = 'DESKTOP'
 
 interface ILoginInfo {
     username: string,
@@ -63,33 +64,18 @@ export enum IChatType {
 /**
  * 消息体
  */
-export interface IMsg {
+export interface IMQTTMsg {
     from: string; // 发送者
-    name: string; // 发送者昵称
-    avatarUrl: string; // 发送者头像
-
     to: string; // 接收者
-    toName: string; // 接收人的昵称
-    toAvatarUrl: string; // 接收人的头像
-
     chatType: IChatType; // 聊天类型 单聊、群聊
     msgType: IMsgTypeEnum; // 消息类型
-
     id: string; // 消息id
     payload: string; // 消息内容
-
-    at: string; // 会话是否有@我的标识符
-
-    replyMsgId: string; // 回复消息ID
-    replyContent: string; // 回复内容
-
-    clientTime: string; // 客户端时间
-    serverTime: bigint; // 服务端时间
-
-    cMsgId: bigint; // 客户端唯一消息id
-    msgStatus: number; // 业务状态
-
-    extends: string[]; // 扩展字段
+    clientTime: number; // 客户端时间
+    serverTime: number; // 服务端时间
+    cMsgId: string; // 客户端唯一消息id
+    msgStatus: number; // 消息状态
+    extends?: { [key: string]: string }; // 扩展字段
 }
 
 class ChatProtocol {
@@ -121,7 +107,7 @@ class ChatProtocol {
      * @param loginInfo 
      * @returns 
      */
-    login(loginInfo: ILoginInfo) {
+    private _login(loginInfo: ILoginInfo) {
         return new Promise((resolve, reject) => {
 
             this.destoryClient()
@@ -130,8 +116,12 @@ class ChatProtocol {
             this.client = mqtt.connect("websockets://localhost:9001", {
                 username: loginInfo.username,
                 password: loginInfo.password,
+                clientId: `${loginInfo.username}-${clientId}`,
                 clean: false, // 保持会话
             });
+
+            // 接受消息
+            this.client.on("message", this.onMessage.bind(this))
 
             // 监听连接成功事件
             this.client.on('connect', function () {
@@ -153,6 +143,11 @@ class ChatProtocol {
 
         })
     }
+    async login(loginInfo: ILoginInfo) {
+        const res = await this._login(loginInfo)
+        await this.subscribeMsg(loginInfo.username)
+        return res
+    }
 
     /**
      * 退出登录
@@ -166,13 +161,39 @@ class ChatProtocol {
      * @param msg 
      * @returns 
      */
-    async sendMsg(msg: IMsg) {
+    async sendMsg(msg: IMQTTMsg) {
         if (!this.client) {
             throw new Error("未登陆")
         }
 
-        const topic = `${msgTopicPrefix}/${msg.chatType == IChatType.GROUP_CHAT ? "GROUP" : ""}${msg.to}/${msg.from}`
-        return await this.client.publishAsync(topic, JSON.stringify(msg), { qos: 0 })
+        const topic = `${msgTopicPrefix}/${msg.chatType == IChatType.GROUP_CHAT ? "GROUP@" : ""}${msg.to}/${msg.from}`
+
+        console.log('[im][api][sendMsg] request', topic, msg);
+        const res = await this.client.publishAsync(topic, JSON.stringify(msg), { qos: 0 })
+        console.log('[im][api][sendMsg] response', res);
+
+        return res
+    }
+
+    /**
+     * 接受消息
+     * @param topic 
+     * @param message 
+     */
+    onMessage(topic: any, message: any) {
+        // message is Buffer
+        console.log(topic, message.toString(), 'onMessage');
+    }
+
+    /**
+     * 订阅消息
+     * @param id 
+     * @param type 
+     * @returns 
+     */
+    async subscribeMsg(id: string, type: IChatType = IChatType.CHAT) {
+        const topic = `${msgTopicPrefix}/${type == IChatType.GROUP_CHAT ? "GROUP@" : ""}${id}/#`
+        return this.client?.subscribeAsync(topic)
     }
 }
 
