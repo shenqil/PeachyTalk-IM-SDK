@@ -2,7 +2,7 @@
  * @Author: shenqi.lv 248120694@qq.com
  * @Date: 2024-04-25 20:42:47
  * @LastEditors: shenqi.lv 248120694@qq.com
- * @LastEditTime: 2024-05-08 21:15:33
+ * @LastEditTime: 2024-05-09 21:03:53
  * @FilePath: \PeachyTalk-IM-SDK\src\App.vue
  * @Description: 功能测试
 -->
@@ -73,7 +73,7 @@
 
 <script setup lang="ts">
 import { ref, onBeforeMount, watch } from "vue";
-import lib, { IChatType, IMsgTypeEnum } from "../lib/index";
+import lib, { IChatType, IMsgTypeEnum, EDisconnectType } from "../lib/index";
 import type { ChatSDK } from "../lib/index";
 let chatSDK: ChatSDK;
 let curConfig = {};
@@ -121,6 +121,30 @@ function useUser() {
 
   onBeforeMount(() => {
     chatSDK = lib.create({ appId: "appId" });
+
+    chatSDK.addEventListener("CONNECTED", () => {
+      console.log("[im][test][addEventListener] CONNECTED");
+    });
+
+    chatSDK.addEventListener("CONNECTING", () => {
+      console.log("[im][test][addEventListener] CONNECTING");
+    });
+
+    chatSDK.addEventListener("DISCONNECTED", (type, reason) => {
+      console.log(
+        "[im][test][addEventListener] DISCONNECTED",
+        EDisconnectType[type],
+        reason
+      );
+    });
+
+    chatSDK.addEventListener("MESSAGE_RECEIVED", (topic, data) => {
+      console.log(
+        "[im][test][addEventListener] CONNECTED",
+        topic,
+        data.toString()
+      );
+    });
   });
 
   const login = async () => {

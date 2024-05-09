@@ -2,17 +2,32 @@
  * @Author: shenqi.lv 248120694@qq.com
  * @Date: 2024-04-28 19:07:29
  * @LastEditors: shenqi.lv 248120694@qq.com
- * @LastEditTime: 2024-05-08 20:39:37
+ * @LastEditTime: 2024-05-09 21:01:16
  * @FilePath: \PeachyTalk-IM-SDK\lib\api\index.ts
  * @Description: 对外暴露的所有API
  */
 import { getCMsgId } from "../utils/common";
-import ChatProtocol, { IChatType, IMQTTMsg, IMsgTypeEnum } from "../protocolLayer/mqtt";
+import ChatProtocol, { EProtocolLayerEventName, IChatType, IMQTTMsg, IMsgTypeEnum, IProtocolLayerEvent } from "../protocolLayer/mqtt";
 import httpApi from "../protocolLayer/http"
 import { getUserInfo, setUserInfo } from "@/store/userInfo";
+import EventBus from "@/utils/eventBus";
 
 export * from "../protocolLayer/mqtt"
 export * from "../protocolLayer/http"
+
+/**
+ * API所有的事件名称
+ * */
+export const ChatEventName = Object.freeze({
+    ...EProtocolLayerEventName,
+})
+
+
+/**
+ * API所有的事件
+ * */
+export interface ChatEvent extends IProtocolLayerEvent {
+};
 
 export interface ILoginInfo {
     userId: string,
@@ -53,9 +68,18 @@ export type ISendMsg = IMsgText | IMsgImg | IMsgFile
 
 export class ChatSDK {
     private chatProtocolInstance: ChatProtocol
-
+    // 事件
+    #eventBus: EventBus<IProtocolLayerEvent> = new EventBus<IProtocolLayerEvent>();
     constructor() {
         this.chatProtocolInstance = new ChatProtocol()
+
+        // 抛出内部所有事件
+        Object.keys(EProtocolLayerEventName).forEach(key => {
+            const name = (EProtocolLayerEventName as any)[key]
+            this.chatProtocolInstance.addEventListener(name, (...args: any) => {
+                this.#eventBus.emit(name, ...args)
+            })
+        })
     }
 
     /**
@@ -131,6 +155,19 @@ export class ChatSDK {
         return await this.chatProtocolInstance.sendMsg(data)
     }
 
+
+    /**
+     * 监听事件
+     * @param name 
+     * @param handle 
+     * @returns Function
+     */
+    addEventListener<K extends keyof ChatEvent>(
+        name: K,
+        handle: IProtocolLayerEvent[K]
+    ): Function {
+        return this.#eventBus.on(name, handle as any);
+    }
 }
 
 export default ChatSDK

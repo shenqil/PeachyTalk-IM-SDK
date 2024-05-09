@@ -2,7 +2,7 @@
  * @Author: shenqi.lv 248120694@qq.com
  * @Date: 2024-04-28 18:42:23
  * @LastEditors: shenqi.lv 248120694@qq.com
- * @LastEditTime: 2024-05-09 20:49:14
+ * @LastEditTime: 2024-05-09 20:56:01
  * @FilePath: \PeachyTalk-IM-SDK\lib\protocolLayer\mqtt\mqtt.ts
  * @Description: 对MQTT进行封装
  */
@@ -29,7 +29,7 @@ export enum EDisconnectType {
 /**
  * 连接层所有的事件名称
  * */
-export const ETransportLayerEventName = Object.freeze({
+export const EProtocolLayerEventName = Object.freeze({
     /**
      * @desc 连接中
      * */
@@ -51,12 +51,17 @@ export const ETransportLayerEventName = Object.freeze({
 /**
  * @desc 连接层所有的事件
  * */
-export interface ITransportLayerEvent {
-    [ETransportLayerEventName.CONNECTING]: () => void;
-    [ETransportLayerEventName.CONNECTED]: () => void;
-    [ETransportLayerEventName.DISCONNECTED]: (type: EDisconnectType, reason?: any) => void;
-    [ETransportLayerEventName.MESSAGE_RECEIVED]: (topic: string, data: Uint8Array) => void;
+export interface IProtocolLayerEvent {
+    [EProtocolLayerEventName.CONNECTING]: () => void;
+    [EProtocolLayerEventName.CONNECTED]: () => void;
+    [EProtocolLayerEventName.DISCONNECTED]: (type: EDisconnectType, reason?: any) => void;
+    [EProtocolLayerEventName.MESSAGE_RECEIVED]: (topic: string, data: Uint8Array) => void;
 };
+
+/**
+ * @desc 所有事件名称
+ * */
+export type ProtocolLayerEventName = keyof IProtocolLayerEvent;
 
 /**
  * 当前连接状态
@@ -137,7 +142,7 @@ class ChatProtocol {
     // 唯一连接实例
     #client: MqttClient | null
     // 事件
-    #eventBus: EventBus<ITransportLayerEvent> = new EventBus<ITransportLayerEvent>();
+    #eventBus: EventBus<IProtocolLayerEvent> = new EventBus<IProtocolLayerEvent>();
     // 最后一条消息
     #lastDisconnectReason: {
         type: EDisconnectType,
@@ -153,13 +158,13 @@ class ChatProtocol {
             this.#connectStatus = v
             switch (v) {
                 case "CONNECTED":
-                    this.#eventBus.emit(ETransportLayerEventName.CONNECTED)
+                    this.#eventBus.emit(EProtocolLayerEventName.CONNECTED)
                     break;
                 case "CONNECTING":
-                    this.#eventBus.emit(ETransportLayerEventName.CONNECTING)
+                    this.#eventBus.emit(EProtocolLayerEventName.CONNECTING)
                     break;
                 case "DISCONNECTED":
-                    this.#eventBus.emit(ETransportLayerEventName.DISCONNECTED, this.#lastDisconnectReason.type, this.#lastDisconnectReason.reason)
+                    this.#eventBus.emit(EProtocolLayerEventName.DISCONNECTED, this.#lastDisconnectReason.type, this.#lastDisconnectReason.reason)
                     break;
                 default:
                     log.error(`[mqtt][connectStatus] 设置了未知状态 connectStatus=${v}`)
@@ -301,7 +306,7 @@ class ChatProtocol {
      */
     private onMessage(topic: string, message: Uint8Array) {
         // message is Buffer
-        this.#eventBus.emit(ETransportLayerEventName.MESSAGE_RECEIVED, topic, message)
+        this.#eventBus.emit(EProtocolLayerEventName.MESSAGE_RECEIVED, topic, message)
     }
 
     /**
@@ -322,13 +327,12 @@ class ChatProtocol {
      * @param handle 
      * @returns Function
      */
-    addEventListener<K extends keyof ITransportLayerEvent>(
+    addEventListener<K extends ProtocolLayerEventName>(
         name: K,
-        handle: ITransportLayerEvent[K]
+        handle: IProtocolLayerEvent[K]
     ): Function {
         return this.#eventBus.on(name, handle as any);
     }
-
 
     /**
      * 销毁
