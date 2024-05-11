@@ -2,17 +2,17 @@
  * @Author: shenqi.lv 248120694@qq.com
  * @Date: 2024-04-28 18:42:23
  * @LastEditors: shenqi.lv 248120694@qq.com
- * @LastEditTime: 2024-05-11 17:50:45
+ * @LastEditTime: 2024-05-11 19:39:59
  * @FilePath: \PeachyTalk-IM-SDK\lib\protocolLayer\mqtt\mqtt.ts
- * @Description: mqtt作为底层连接
+ * @Description: 传输层实现
  */
 import mqtt, { MqttClient } from "mqtt"
 import log from "@/utils/log"
 import EventBus from "@/utils/eventBus"
-import { EDisconnectType, ETransportLayerEventName, IConnectOpts, IConnectStatus, ITransportLayer, ITransportLayerEvent, TransportLayerEventName, clientId } from ".."
+import { EDisconnectType, ETransportLayerEventName, IConnectOpts, IConnectStatus, ATransportLayer, ITransportLayerEvent, TransportLayerEventName, clientId } from ".."
 
 
-class ChatTransportLayer implements ITransportLayer {
+class TransportLayer implements ATransportLayer {
     // 唯一连接实例
     #client: MqttClient | null
     // 事件
@@ -125,26 +125,6 @@ class ChatTransportLayer implements ITransportLayer {
         })
     }
 
-    // async login(loginInfo: ILoginInfo) {
-
-    //     this.connectStatus = "CONNECTING"
-    //     return this._login(loginInfo)
-    //         .then(() => {
-    //             return this.subscribeMsg(loginInfo.username)
-    //         })
-    //         .then(() => {
-    //             this.connectStatus = "CONNECTED"
-    //         })
-    //         .catch(err => {
-    //             this.connectStatus = "DISCONNECTED"
-    //             throw err
-    //         })
-
-    //     // await this.#client?.subscribeAsync('$SYS/broker/subscriptions/#')
-    //     // await this.#client?.subscribeAsync('$SYS/#')
-    //     // this.#client?.unsubscribeAsync("$SYS/#")
-    // }
-
     /**
      * 断开连接
      */
@@ -162,11 +142,11 @@ class ChatTransportLayer implements ITransportLayer {
      * @param msg 
      * @returns 
      */
-    async send(topic: string, data: Buffer): Promise<mqtt.Packet | undefined> {
+    async send(topic: string, data: Uint8Array): Promise<mqtt.Packet | undefined> {
         if (!this.#client) {
             throw new Error("未登陆")
         }
-        const res = await this.#client.publishAsync(topic, data, { qos: 1 })
+        const res = await this.#client.publishAsync(topic, data.toString(), { qos: 1 })
         return res
     }
 
@@ -184,7 +164,6 @@ class ChatTransportLayer implements ITransportLayer {
      * @param topic 
      */
     async subscribeTopic(topic: string) {
-        // const topic = `${msgTopicPrefix}/${type == IChatType.GROUP_CHAT ? "GROUP@" : ""}${id}/#`
         return this.#client?.subscribeAsync(topic, { qos: 1 })
     }
 
@@ -218,4 +197,4 @@ class ChatTransportLayer implements ITransportLayer {
     }
 }
 
-export default ChatTransportLayer
+export default TransportLayer

@@ -49,7 +49,7 @@ export const ETransportLayerEventName = Object.freeze({
     /**
      * 接收到消息
      * */
-    MESSAGE_RECEIVED: 'MESSAGE_RECEIVED'
+    MESSAGE_RECEIVED: 'TRANSPORT_LAYER_MESSAGE_RECEIVED'
 })
 
 /**
@@ -70,7 +70,7 @@ export type TransportLayerEventName = keyof ITransportLayerEvent;
 /**
  * 连接层S抽象类
  * */
-export abstract class ITransportLayer {
+export abstract class ATransportLayer {
     /**
      * 发起一次连接
      * @param opt 
@@ -87,7 +87,7 @@ export abstract class ITransportLayer {
      * @param topic 
      * @param data 
      */
-    abstract send(topic: string, data: Buffer): Promise<mqtt.Packet | undefined>;
+    abstract send(topic: string, data: Uint8Array): Promise<mqtt.Packet | undefined>;
 
     /**
      * 订阅主题

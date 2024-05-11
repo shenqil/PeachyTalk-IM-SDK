@@ -2,7 +2,7 @@
  * @Author: shenqi.lv 248120694@qq.com
  * @Date: 2024-04-25 20:42:47
  * @LastEditors: shenqi.lv 248120694@qq.com
- * @LastEditTime: 2024-05-09 21:03:53
+ * @LastEditTime: 2024-05-11 19:32:31
  * @FilePath: \PeachyTalk-IM-SDK\src\App.vue
  * @Description: 功能测试
 -->
@@ -73,7 +73,7 @@
 
 <script setup lang="ts">
 import { ref, onBeforeMount, watch } from "vue";
-import lib, { IChatType, IMsgTypeEnum, EDisconnectType } from "../lib/index";
+import lib, { ChatType, MessageType, EDisconnectType } from "../lib/index";
 import type { ChatSDK } from "../lib/index";
 let chatSDK: ChatSDK;
 let curConfig = {};
@@ -138,10 +138,9 @@ function useUser() {
       );
     });
 
-    chatSDK.addEventListener("MESSAGE_RECEIVED", (topic, data) => {
+    chatSDK.addEventListener("MESSAGE_RECEIVED", (data) => {
       console.log(
-        "[im][test][addEventListener] CONNECTED",
-        topic,
+        "[im][test][addEventListener] MESSAGE_RECEIVED",
         data.toString()
       );
     });
@@ -187,8 +186,8 @@ function useMsg() {
     try {
       const res = await chatSDK.sendMsg({
         to: chatToId.value,
-        chatType: IChatType.CHAT,
-        msgType: IMsgTypeEnum.TEXT,
+        chatType: ChatType.CHAT,
+        type: MessageType.TEXT,
         payload: `${Date.now()}-${msgContent.value}`,
       });
 

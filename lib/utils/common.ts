@@ -2,7 +2,7 @@
  * @Author: shenqi.lv 248120694@qq.com
  * @Date: 2024-05-01 18:32:57
  * @LastEditors: shenqi.lv 248120694@qq.com
- * @LastEditTime: 2024-05-01 18:33:35
+ * @LastEditTime: 2024-05-11 19:19:40
  * @FilePath: \PeachyTalk-IM-SDK\lib\utils\common.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -23,4 +23,12 @@ export function getCMsgId(): string {
     }
     preTime = curTime
     return `${generateRandomNumber()}${curTime}${sequence}`
+}
+
+/**
+ * 返回时间戳
+ * @returns 
+ */
+export function getTimestamp() {
+    return BigInt(Date.now())
 }

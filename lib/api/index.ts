@@ -2,18 +2,19 @@
  * @Author: shenqi.lv 248120694@qq.com
  * @Date: 2024-04-28 19:07:29
  * @LastEditors: shenqi.lv 248120694@qq.com
- * @LastEditTime: 2024-05-09 21:01:16
+ * @LastEditTime: 2024-05-11 19:30:24
  * @FilePath: \PeachyTalk-IM-SDK\lib\api\index.ts
  * @Description: 对外暴露的所有API
  */
-import { getCMsgId } from "../utils/common";
-import ChatProtocol, { EProtocolLayerEventName, IChatType, IMQTTMsg, IMsgTypeEnum, IProtocolLayerEvent } from "../protocolLayer/mqtt";
-import httpApi from "../protocolLayer/http"
+import ProtocolLayer from "@/protocolLayer/protobuf";
+import { AProtocolLayer, ChatType, EProtocolLayerEventName, IProtocolLayerEvent, Message, MessageType } from "../protocolLayer";
+import { getCMsgId, getTimestamp } from "../utils/common";
+import httpApi from "./http"
 import { getUserInfo, setUserInfo } from "@/store/userInfo";
 import EventBus from "@/utils/eventBus";
+import log from "@/utils/log";
 
-export * from "../protocolLayer/mqtt"
-export * from "../protocolLayer/http"
+export * from "./http"
 
 /**
  * API所有的事件名称
@@ -29,7 +30,11 @@ export const ChatEventName = Object.freeze({
 export interface ChatEvent extends IProtocolLayerEvent {
 };
 
-export interface ILoginInfo {
+
+/**
+ * 登陆参数
+ */
+export interface ILoginParams {
     userId: string,
     token: string
 }
@@ -37,27 +42,27 @@ export interface ILoginInfo {
 
 interface IMsgBase {
     to: string; // 接收者
-    chatType: IChatType; // 聊天类型 单聊、群聊
-    cMsgId?: string; // 客户端唯一消息id
-    extends?: { [key: string]: string }; // 扩展字段
+    chatType: ChatType; // 聊天类型 单聊、群聊
+    serverExtension?: string;
+    clientExtension?: string;
 }
 
 
 interface IMsgText extends IMsgBase {
-    msgType: IMsgTypeEnum.TEXT | IMsgTypeEnum.CUSTOM,
+    type: MessageType.TEXT | MessageType.CUSTOM,
     payload: string
 }
 
 
 interface IMsgImg extends IMsgBase {
-    msgType: IMsgTypeEnum.IMAGE,
+    type: MessageType.IMAGE,
     file: File;
     width: number;
     height: number;
 }
 
 interface IMsgFile extends IMsgBase {
-    msgType: IMsgTypeEnum.AUDIO | IMsgTypeEnum.VEDIO,
+    type: MessageType.AUDIO | MessageType.VEDIO,
     file: File;
 }
 
@@ -67,16 +72,16 @@ interface IMsgFile extends IMsgBase {
 export type ISendMsg = IMsgText | IMsgImg | IMsgFile
 
 export class ChatSDK {
-    private chatProtocolInstance: ChatProtocol
+    #protocolInstance: AProtocolLayer
     // 事件
     #eventBus: EventBus<IProtocolLayerEvent> = new EventBus<IProtocolLayerEvent>();
     constructor() {
-        this.chatProtocolInstance = new ChatProtocol()
+        this.#protocolInstance = new ProtocolLayer()
 
         // 抛出内部所有事件
         Object.keys(EProtocolLayerEventName).forEach(key => {
             const name = (EProtocolLayerEventName as any)[key]
-            this.chatProtocolInstance.addEventListener(name, (...args: any) => {
+            name && this.#protocolInstance.addEventListener(name, (...args: any) => {
                 this.#eventBus.emit(name, ...args)
             })
         })
@@ -86,10 +91,10 @@ export class ChatSDK {
      * 登录
      * @param loginInfo 
      */
-    async login(loginInfo: ILoginInfo) {
-        console.log('[im][api][login] loginInfo', loginInfo);
-        const res = await this.chatProtocolInstance.login({ username: loginInfo.userId, password: loginInfo.token })
-        setUserInfo({ ...loginInfo })
+    async login(params: ILoginParams) {
+        log.info('[api][login] loginInfo', params)
+        const res = await this.#protocolInstance.login({ username: params.userId, password: params.token })
+        setUserInfo({ ...params })
         return res
     }
 
@@ -98,9 +103,9 @@ export class ChatSDK {
      * @returns 
      */
     logout() {
-        console.log('[im][api][logout]');
+        log.info('[api][login] logout')
         setUserInfo(undefined)
-        return this.chatProtocolInstance.logout()
+        return this.#protocolInstance.logout()
     }
 
 
@@ -117,18 +122,18 @@ export class ChatSDK {
             throw new Error("用户未登陆")
         }
 
-        console.log('[im][api][sendMsg] msg=', msg);
+        log.info(`[api][sendMsg] msg=`, msg)
 
         let payload = ""
-        switch (msg.msgType) {
-            case IMsgTypeEnum.TEXT:
-            case IMsgTypeEnum.CUSTOM:
+        switch (msg.type) {
+            case MessageType.TEXT:
+            case MessageType.CUSTOM:
                 payload = msg.payload
                 break;
 
-            case IMsgTypeEnum.IMAGE:
-            case IMsgTypeEnum.VEDIO:
-            case IMsgTypeEnum.IMAGE:
+            case MessageType.IMAGE:
+            case MessageType.VEDIO:
+            case MessageType.IMAGE:
                 await httpApi.uploadFile({ file: msg.file })
                 break
 
@@ -136,23 +141,21 @@ export class ChatSDK {
                 break;
         }
 
-        const cMsgId = msg.cMsgId || getCMsgId()
+        const msgId = getCMsgId()
 
-        const data: IMQTTMsg = {
+        const data = Message.create({
+            id: msgId,
             from: userId,
             to: msg.to,
             chatType: msg.chatType,
-            msgType: msg.msgType, // 消息类型
-            id: "", // 消息id
-            payload, // 消息内容
-            clientTime: Date.now(), // 客户端时间
-            serverTime: 0, // 服务端时间
-            cMsgId, // 客户端唯一消息id
-            msgStatus: 0, // 消息状态
-            extends: msg.extends, // 扩展字段
-        }
+            type: msg.type,
+            payload,
+            timestamp: getTimestamp(),
+            clientExtension: msg.clientExtension,
+            serverExtension: msg.serverExtension
+        })
 
-        return await this.chatProtocolInstance.sendMsg(data)
+        return await this.#protocolInstance.sendMsg(data)
     }
 
 
