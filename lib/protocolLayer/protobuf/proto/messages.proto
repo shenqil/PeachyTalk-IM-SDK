@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package im;
+
+/**
+ * 消息类型
+ */
+enum MessageType {
+    /**
+     * 文本
+     */
+     TEXT = 0;
+     /**
+      * 图片
+      */
+     IMAGE = 1;
+     /**
+      * 语音
+      */
+     AUDIO = 2;
+     /**
+      * 视频
+      */
+     VEDIO = 3;
+     /**
+      * 视频
+      */
+     CUSTOM = 4;
+}
+
+/**
+ * 聊天类型
+ */
+ enum ChatType {
+  /**
+   * 单聊消息
+   */
+  CHAT = 0;
+  /**
+   * 群聊消息
+   */
+  GROUP_CHAT = 1;
+  /**
+   * 系统消息
+   */
+  SYSTEM = 2;
+}
+
+/**
+ * 消息确认状态
+ */
+enum MessageStatus {
+  UNCONFIRMED = 0;
+  CONFIRMED = 1;
+}
+
+/**
+ * 消息
+ */
+ message Message {
+  string id = 1; // 消息id
+  string from = 2; // 发送者
+  string to = 3; // 接收者
+  ChatType chatType = 4; // 聊天类型 单聊、群聊
+  MessageType type = 5; // 消息类型
+  string payload = 6; // 消息内容
+  int64 timestamp = 7; // 时间戳
+  MessageStatus status = 8; // 消息状态
+  bool recalled = 9; // 消息是否被撤回
+  int64 recallTimestamp = 10; // 消息撤回时间戳
+  bool deleted = 11; // 消息是否被删除
+  int64 deleteTimestamp = 12; // 消息删除时间戳
+  string replyToMessageId = 13; // 被回复的消息的ID
+  // 扩展字段1，留给服务端使用
+  string serverExtension = 14;
+  // 扩展字段2，留给P2P客户端使用
+  string clientExtension = 15;
+}
