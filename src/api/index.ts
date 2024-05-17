@@ -2,13 +2,13 @@
  * @Author: shenqi.lv 248120694@qq.com
  * @Date: 2024-04-28 19:07:29
  * @LastEditors: shenqi.lv 248120694@qq.com
- * @LastEditTime: 2024-05-11 19:30:24
+ * @LastEditTime: 2024-05-17 15:03:56
  * @FilePath: \PeachyTalk-IM-SDK\lib\api\index.ts
  * @Description: 对外暴露的所有API
  */
 import ProtocolLayer from "@/protocolLayer/protobuf";
-import { AProtocolLayer, ChatType, EProtocolLayerEventName, IProtocolLayerEvent, Message, MessageType } from "../protocolLayer";
-import { getCMsgId, getTimestamp } from "../utils/common";
+import { AProtocolLayer, ChatType, EProtocolLayerEventName, IProtocolLayerEvent, Message, MessageType } from "@/protocolLayer";
+import { getCMsgId, getTimestamp } from "@/utils/common";
 import httpApi from "./http"
 import { getUserInfo, setUserInfo } from "@/store/userInfo";
 import EventBus from "@/utils/eventBus";

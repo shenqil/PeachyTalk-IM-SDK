@@ -2,14 +2,14 @@
  * @Author: shenqi.lv 248120694@qq.com
  * @Date: 2024-04-28 18:42:23
  * @LastEditors: shenqi.lv 248120694@qq.com
- * @LastEditTime: 2024-05-11 19:39:59
+ * @LastEditTime: 2024-05-17 15:04:35
  * @FilePath: \PeachyTalk-IM-SDK\lib\protocolLayer\mqtt\mqtt.ts
  * @Description: 传输层实现
  */
 import mqtt, { MqttClient } from "mqtt"
 import log from "@/utils/log"
 import EventBus from "@/utils/eventBus"
-import { EDisconnectType, ETransportLayerEventName, IConnectOpts, IConnectStatus, ATransportLayer, ITransportLayerEvent, TransportLayerEventName, clientId } from ".."
+import { EDisconnectType, ETransportLayerEventName, IConnectOpts, IConnectStatus, ATransportLayer, ITransportLayerEvent, TransportLayerEventName, clientId } from "@/transportLayer"
 
 
 class TransportLayer implements ATransportLayer {
@@ -84,7 +84,7 @@ class TransportLayer implements ATransportLayer {
             this.connectStatus = "CONNECTING"
 
             // 发起一次连接
-            this.#client = mqtt.connect("websockets://localhost:9001", {
+            this.#client = mqtt.connect("mqtt://localhost:9001", {
                 username: opts.username,
                 password: opts.password,
                 clientId: `${opts.username}-${clientId}`,
