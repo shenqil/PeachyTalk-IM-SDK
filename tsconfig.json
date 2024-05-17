@@ -12,8 +12,9 @@
       "@/*": ["src/*"]                  // 配置路径别名
     },
     "declaration": true,                // 生成声明文件
+    "declarationDir": "./types",
     "sourceMap": true                   // 生成 source map 文件
   },
   "include": ["src/**/*"],              // 包含的文件
-  "exclude": ["node_modules", "dist"]   // 排除的文件或目录
+  "exclude": ["node_modules", "dist", "types"]   // 排除的文件或目录
 }
