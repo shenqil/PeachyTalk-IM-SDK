@@ -19,6 +19,9 @@ instance.on(ChatEventName.DISCONNECTED, () => {
 instance.on(ChatEventName.MESSAGE_RECEIVED, (data: Message) => {
     console.log("[IM][dev][event] 接收到消息", data)
 })
+instance.on(ChatEventName.CONVERSATION_LIST_UPDATED, (list) => {
+    console.log("[IM][dev][event] 会话列表更新", list)
+})
 
 // 定义不同命令对应的参数提示
 const commandPrompts = {

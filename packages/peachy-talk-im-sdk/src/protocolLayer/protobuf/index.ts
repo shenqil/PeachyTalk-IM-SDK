@@ -2,13 +2,13 @@
  * @Author: shenqi.lv 248120694@qq.com
  * @Date: 2024-05-11 16:48:46
  * @LastEditors: shenqi.lv 248120694@qq.com
- * @LastEditTime: 2024-05-20 17:49:07
+ * @LastEditTime: 2024-05-20 20:29:27
  * @FilePath: \PeachyTalk-IM-SDK\lib\protocolLayer\protobuf\index.ts
  * @Description: 协议层实现
  */
 
 import EventBus from "@/utils/eventBus";
-import { AProtocolLayer, ChatType, EProtocolLayerEventName, ILoginInfo, IProtocolLayerEvent, Message, ProtocolLayerEventName } from "..";
+import { AProtocolLayer, EProtocolLayerEventName, ILoginInfo, IProtocolLayerEvent, Message, ProtocolLayerEventName } from "..";
 import { ATransportLayer, ETransportLayerEventName, msgTopicPrefix } from "@/transportLayer";
 import TransportLayer from "@/transportLayer/mqtt";
 import log from "@/utils/log";
@@ -59,7 +59,7 @@ class ProtocolLayer implements AProtocolLayer {
      * @param msg 
      */
     async sendMsg(msg: Message): Promise<boolean> {
-        const topic = `${msgTopicPrefix}/${msg.chatType == ChatType.GROUP_CHAT ? "GROUP@" : ""}${msg.to}/${msg.from}`
+        const topic = `${msgTopicPrefix}/${msg.to}/${msg.from}`
         log.info(`[protobuf][sendMsg] topic=${topic}, msg=`, msg)
         await this.#transportInstance.send(topic, Message.toBinary(msg))
         return true

@@ -2,10 +2,12 @@
  * @Author: shenqi.lv 248120694@qq.com
  * @Date: 2024-05-01 18:32:57
  * @LastEditors: shenqi.lv 248120694@qq.com
- * @LastEditTime: 2024-05-11 19:19:40
+ * @LastEditTime: 2024-05-20 20:28:50
  * @FilePath: \PeachyTalk-IM-SDK\lib\utils\common.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ * @Description: 通用工具函数
  */
+
+import { ChatType } from "@/protocolLayer/protobuf/proto/messages";
 
 /**
  * 生成唯一ID
@@ -31,4 +33,37 @@ export function getCMsgId(): string {
  */
 export function getTimestamp() {
     return BigInt(Date.now())
+}
+
+
+/**
+ * 节流函数
+ * @param func 
+ * @param wait 
+ * @returns 
+ */
+export function throttle(func: Function, wait = 1000) {
+    let isWait = false;
+    let lastArgs: any;
+    let lastExecutionTime = 0;
+
+    function flush() {
+        func(...lastArgs)
+        lastExecutionTime = Date.now();
+        isWait = false
+    }
+
+    return function (...args: any) {
+        lastArgs = args;
+        const now = Date.now();
+        const remainingTime = wait - (now - lastExecutionTime);
+        if (!isWait) {
+            isWait = true
+            if (remainingTime <= 0) {
+                flush()
+            } else {
+                setTimeout(flush, remainingTime)
+            }
+        }
+    };
 }

@@ -2,7 +2,7 @@
  * @Author: shenqi.lv 248120694@qq.com
  * @Date: 2024-04-28 19:07:29
  * @LastEditors: shenqi.lv 248120694@qq.com
- * @LastEditTime: 2024-05-20 17:24:18
+ * @LastEditTime: 2024-05-20 20:56:42
  * @FilePath: \PeachyTalk-IM-SDK\lib\api\index.ts
  * @Description: 对外暴露的所有API
  */
@@ -13,6 +13,7 @@ import httpApi from "./http"
 import { getUserInfo, setUserInfo } from "@/store/userInfo";
 import EventBus from "@/utils/eventBus";
 import log from "@/utils/log";
+import ConversationStore, { IConversationInfo } from "@/store/conversationStore";
 
 export * from "./http"
 
@@ -21,6 +22,7 @@ export * from "./http"
  * */
 export const ChatEventName = Object.freeze({
     ...EProtocolLayerEventName,
+    CONVERSATION_LIST_UPDATED: "CONVERSATION_LIST_UPDATED"
 })
 
 
@@ -28,6 +30,7 @@ export const ChatEventName = Object.freeze({
  * API所有的事件
  * */
 export interface ChatEvent extends IProtocolLayerEvent {
+    [ChatEventName.CONVERSATION_LIST_UPDATED]: (list: IConversationInfo[]) => void
 };
 
 
@@ -79,15 +82,25 @@ export interface Options {
 }
 
 export class ChatSDK {
+    // 协议层
     #protocolInstance: AProtocolLayer
+    // 会话
+    #conversationStore: ConversationStore
     // 事件
-    #eventBus: EventBus<IProtocolLayerEvent> = new EventBus<IProtocolLayerEvent>();
+    #eventBus: EventBus<ChatEvent> = new EventBus<ChatEvent>();
     // 配置
     #opts: Options
     constructor(o: Options) {
         this.#opts = Object.freeze(o)
 
         this.#protocolInstance = new ProtocolLayer()
+        this.#conversationStore = new ConversationStore((list: IConversationInfo[]) => this.#eventBus.emit(ChatEventName.CONVERSATION_LIST_UPDATED, list))
+
+        // 监听消息，更新会话
+        this.#protocolInstance.addEventListener(EProtocolLayerEventName.MESSAGE_RECEIVED, (data) => {
+            const id = data.chatType === ChatType.GROUP_CHAT ? data.to : data.from
+            this.#conversationStore.updateConversationByMsg(id, data)
+        })
 
         // 抛出内部所有事件
         Object.keys(EProtocolLayerEventName).forEach(key => {
@@ -106,6 +119,7 @@ export class ChatSDK {
         log.info('[api][login] loginInfo', params)
         const res = await this.#protocolInstance.login({ brokerUrl: this.#opts.url, username: params.userId, password: params.token })
         setUserInfo({ ...params })
+        this.#conversationStore.init([], params.userId)
         return res
     }
 
@@ -116,6 +130,7 @@ export class ChatSDK {
     logout() {
         log.info('[api][login] logout')
         setUserInfo(undefined)
+        this.#conversationStore.destroy()
         return this.#protocolInstance.logout()
     }
 
@@ -165,6 +180,8 @@ export class ChatSDK {
             clientExtension: msg.clientExtension,
             serverExtension: msg.serverExtension
         })
+
+        this.#conversationStore.updateConversationByMsg(msg.to, data)
 
         return await this.#protocolInstance.sendMsg(data)
     }
