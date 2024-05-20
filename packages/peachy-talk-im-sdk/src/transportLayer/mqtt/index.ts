@@ -2,7 +2,7 @@
  * @Author: shenqi.lv 248120694@qq.com
  * @Date: 2024-04-28 18:42:23
  * @LastEditors: shenqi.lv 248120694@qq.com
- * @LastEditTime: 2024-05-20 11:44:42
+ * @LastEditTime: 2024-05-20 17:53:08
  * @FilePath: \PeachyTalk-IM-SDK\lib\protocolLayer\mqtt\mqtt.ts
  * @Description: 传输层实现
  */
@@ -146,7 +146,7 @@ class TransportLayer implements ATransportLayer {
         if (!this.#client) {
             throw new Error("未登陆")
         }
-        const res = await this.#client.publishAsync(topic, data.toString(), { qos: 1 })
+        const res = await this.#client.publishAsync(topic, Buffer.from(data), { qos: 1 })
         return res
     }
 

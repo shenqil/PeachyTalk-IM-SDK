@@ -2,7 +2,7 @@
  * @Author: shenqi.lv 248120694@qq.com
  * @Date: 2024-04-28 19:07:29
  * @LastEditors: shenqi.lv 248120694@qq.com
- * @LastEditTime: 2024-05-20 16:29:41
+ * @LastEditTime: 2024-05-20 17:24:18
  * @FilePath: \PeachyTalk-IM-SDK\lib\api\index.ts
  * @Description: 对外暴露的所有API
  */
@@ -176,9 +176,9 @@ export class ChatSDK {
      * @param handle 
      * @returns Function
      */
-    addEventListener<K extends keyof ChatEvent>(
+    on<K extends keyof ChatEvent>(
         name: K,
-        handle: IProtocolLayerEvent[K]
+        handle: ChatEvent[K]
     ): Function {
         return this.#eventBus.on(name, handle as any);
     }
