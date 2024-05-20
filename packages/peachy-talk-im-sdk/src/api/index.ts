@@ -2,7 +2,7 @@
  * @Author: shenqi.lv 248120694@qq.com
  * @Date: 2024-04-28 19:07:29
  * @LastEditors: shenqi.lv 248120694@qq.com
- * @LastEditTime: 2024-05-17 15:03:56
+ * @LastEditTime: 2024-05-20 16:29:41
  * @FilePath: \PeachyTalk-IM-SDK\lib\api\index.ts
  * @Description: 对外暴露的所有API
  */
@@ -71,11 +71,22 @@ interface IMsgFile extends IMsgBase {
  * */
 export type ISendMsg = IMsgText | IMsgImg | IMsgFile
 
+/**
+ * 创建实例参数
+ */
+export interface Options {
+    url: string;
+}
+
 export class ChatSDK {
     #protocolInstance: AProtocolLayer
     // 事件
     #eventBus: EventBus<IProtocolLayerEvent> = new EventBus<IProtocolLayerEvent>();
-    constructor() {
+    // 配置
+    #opts: Options
+    constructor(o: Options) {
+        this.#opts = Object.freeze(o)
+
         this.#protocolInstance = new ProtocolLayer()
 
         // 抛出内部所有事件
@@ -93,7 +104,7 @@ export class ChatSDK {
      */
     async login(params: ILoginParams) {
         log.info('[api][login] loginInfo', params)
-        const res = await this.#protocolInstance.login({ username: params.userId, password: params.token })
+        const res = await this.#protocolInstance.login({ brokerUrl: this.#opts.url, username: params.userId, password: params.token })
         setUserInfo({ ...params })
         return res
     }

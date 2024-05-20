@@ -13,7 +13,8 @@
       "@/*": ["packages/peachy-talk-im-sdk/src/*"]                  // 配置路径别名
     },
     "types": ["node"],
+    "resolveJsonModule": true
   },
-  "include": ["dev/**/*", "packages/peachy-talk-im-sdk/*"],              // 包含的文件
+  "include": ["dev/*", "packages/peachy-talk-im-sdk/src/*"],              // 包含的文件
   "exclude": ["node_modules"]   // 排除的文件或目录
 }

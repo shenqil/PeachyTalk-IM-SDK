@@ -26,6 +26,7 @@ export enum EDisconnectType {
  * 连接参数
  */
 export type IConnectOpts = {
+    brokerUrl: string,
     username: string,
     password: string
 };

@@ -2,7 +2,7 @@
  * @Author: shenqi.lv 248120694@qq.com
  * @Date: 2024-04-28 18:42:23
  * @LastEditors: shenqi.lv 248120694@qq.com
- * @LastEditTime: 2024-05-17 15:04:35
+ * @LastEditTime: 2024-05-20 11:44:42
  * @FilePath: \PeachyTalk-IM-SDK\lib\protocolLayer\mqtt\mqtt.ts
  * @Description: 传输层实现
  */
@@ -84,7 +84,7 @@ class TransportLayer implements ATransportLayer {
             this.connectStatus = "CONNECTING"
 
             // 发起一次连接
-            this.#client = mqtt.connect("mqtt://localhost:9001", {
+            this.#client = mqtt.connect(opts.brokerUrl, {
                 username: opts.username,
                 password: opts.password,
                 clientId: `${opts.username}-${clientId}`,

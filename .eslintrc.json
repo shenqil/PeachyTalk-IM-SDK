@@ -7,7 +7,7 @@
   ],
   "plugins": [
     "@typescript-eslint",
-    "prettier"
+    "prettier/prettier"
   ],
   "parserOptions": {
     "ecmaVersion": 2020,
@@ -21,7 +21,7 @@
   "ignorePatterns": ["dist/", "types/", "node_modules/", "webpack.config.js"],
   "overrides": [
     {
-      "files": ["src/**/*.ts"],
+      "files": ["dev/**/*.ts"],
       "excludedFiles": "*.test.ts"
     }
   ]

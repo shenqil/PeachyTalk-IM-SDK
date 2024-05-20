@@ -12,6 +12,7 @@
   "author": "shenqi.lv",
   "license": "ISC",
   "devDependencies": {
+    "@types/inquirer": "^8.2.10",
     "@types/node": "^20.12.12",
     "@typescript-eslint/eslint-plugin": "^5",
     "@typescript-eslint/parser": "^5",
@@ -22,5 +23,8 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "inquirer": "^8.2.6"
   }
 }
