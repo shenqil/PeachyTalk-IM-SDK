@@ -1,0 +1,28 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:prettier/recommended"
+  ],
+  "plugins": [
+    "@typescript-eslint",
+    "prettier"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "module"
+  },
+  "rules": {
+    "prettier/prettier": "error",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-explicit-any": "off"
+  },
+  "ignorePatterns": ["dist/", "types/", "node_modules/", "webpack.config.js"],
+  "overrides": [
+    {
+      "files": ["src/**/*.ts"],
+      "excludedFiles": "*.test.ts"
+    }
+  ]
+}
