@@ -2,7 +2,7 @@
  * @Author: shenqi.lv 248120694@qq.com
  * @Date: 2024-04-28 18:42:23
  * @LastEditors: shenqi.lv 248120694@qq.com
- * @LastEditTime: 2024-05-20 17:53:08
+ * @LastEditTime: 2024-05-23 15:45:14
  * @FilePath: \PeachyTalk-IM-SDK\lib\protocolLayer\mqtt\mqtt.ts
  * @Description: 传输层实现
  */
@@ -85,10 +85,20 @@ class TransportLayer implements ATransportLayer {
 
             // 发起一次连接
             this.#client = mqtt.connect(opts.brokerUrl, {
+                protocol: "mqtt",
+                encoding: "binary",
+                protocolVersion: 5,
                 username: opts.username,
                 password: opts.password,
                 clientId: `${opts.username}-${clientId}`,
                 clean: false, // 保持会话
+                connectTimeout: 4000,
+                reconnectPeriod: 0, // 禁止自动重连
+                properties: {
+                    sessionExpiryInterval: 0xFFFFFFFF, // 0xFFFFFFFF（永不过期）
+                    receiveMaximum: 0, // 表示服务器愿意同时处理的最大QoS 1和QoS 2消息的数量
+                    maximumPacketSize: 0, // 指定客户端愿意接收的最大数据包大小
+                }
             });
 
             // 接受消息

@@ -29,6 +29,7 @@ const commandPrompts = {
         { type: 'input', name: 'username', message: '输入用户名: ' },
         { type: 'password', name: 'password', message: '输入密码: ' },
     ],
+    logout: [],
     sendTextMsg: [
         { type: 'input', name: 'toId', message: '接收者ID: ' },
         { type: 'input', name: 'text', message: '发送文本: ' },
@@ -44,6 +45,9 @@ const commandHanldes: any = {
         } catch (error) {
             console.error("[IM][dev][login] 登录失败", error)
         }
+    },
+    logout: () => {
+        instance.logout()
     },
     sendTextMsg: async (args: any) => {
         try {
